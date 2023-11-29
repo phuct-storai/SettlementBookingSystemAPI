@@ -7,9 +7,12 @@
             this.BookingTime = BookingTime;
             this.Name = Name;
         }
-
-        public DateTime BookingTime { get; set; }
-
+        public string BookingId { get; set; }
         public string Name { get; set; }
+        public string BookingTime { get; set; }
+        public string ExpiredTime { get; set; }
+
+
+
     }
 }

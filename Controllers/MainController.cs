@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using SettlementBookingSystemAPI.Handlers;
 using SettlementBookingSystemAPI.Models;
+using System.Net;
 using System.Text.Json.Serialization;
 
 namespace SettlementBookingSystemAPI.Controllers
@@ -13,9 +15,6 @@ namespace SettlementBookingSystemAPI.Controllers
     {
         private readonly ILogger<MainController> _logger;
         private readonly IMediator _mediator;
-        private readonly string url = "https://localhost:44355";
-        private readonly string url2 = "https://google.com";
-
 
         public MainController(ILogger<MainController> logger, IMediator mediator)
         {
@@ -24,27 +23,25 @@ namespace SettlementBookingSystemAPI.Controllers
         }
 
         [HttpPost("get-booking")]
-        public async Task<BookingRequestDto> GetBookingRequest([FromBody] BookingRequest bookingRequest)
+        public async Task<IActionResult> GetBookingRequest([FromBody] BookingRequest bookingRequest)
         {
-            //using (var httpClient = new HttpClient())
-            //{
-            //    HttpResponseMessage httpResponseMessage = await httpClient.GetAsync(url);
+            BookingRequestHandler bookingRequestHandler = new BookingRequestHandler();
 
-            //    //var jsonObject = await httpResponseMessage.Content.ReadAsStringAsync();
-
-            //    //var bookingRequest = JsonConvert.DeserializeObject<BookingRequest>(jsonObject);
-
-            //    httpResponseMessage.EnsureSuccessStatusCode();
-                
-            //    var responseString = await httpResponseMessage.Content.ReadAsStringAsync();
-
-            //    var bookingRequest = JsonConvert.DeserializeObject<BookingRequestDto>(responseString);
-
-            //    return bookingRequest;
-                
-            //}
-
-            if (bookingRequest.BookingTime.)
+            if (bookingRequestHandler.TimeChecking(bookingRequest.BookingTime).ToString() != "Fail!")
+            {
+                var response = new BookingRequest
+                {
+                    BookingId = Guid.NewGuid().ToString(),
+                    Name = bookingRequest.Name,
+                    BookingTime = bookingRequest.BookingTime,
+                    ExpiredTime = DateTime.Parse(bookingRequest.BookingTime).AddHours(1).ToString("HH:mm:ss"),
+                };
+                return Ok(response.BookingId);
+            }
+            else
+            {
+                return BadRequest();
+            }
         }
     }
 }
