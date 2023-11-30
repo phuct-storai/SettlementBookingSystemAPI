@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using SettlementBookingSystemAPI.Handlers;
 using SettlementBookingSystemAPI.Models;
+using System;
 using System.Net;
 using System.Text.Json.Serialization;
 
@@ -15,6 +16,8 @@ namespace SettlementBookingSystemAPI.Controllers
     {
         private readonly ILogger<MainController> _logger;
         private readonly IMediator _mediator;
+        private static List<BookingRequest> bookingRequestList = new List<BookingRequest>();
+
 
         public MainController(ILogger<MainController> logger, IMediator mediator)
         {
@@ -22,26 +25,46 @@ namespace SettlementBookingSystemAPI.Controllers
             _mediator = mediator;
         }
 
+        [HttpGet("get-information")]
+        public async Task<ActionResult<List<BookingRequest>>> GettAllBookingRequests()
+        {
+            return Ok(bookingRequestList);
+        }
+
         [HttpPost("get-booking")]
-        public async Task<IActionResult> GetBookingRequest([FromBody] BookingRequest bookingRequest)
+        public async Task<ActionResult> GetBookingRequest([FromBody] BookingRequest bookingRequest)
         {
             BookingRequestHandler bookingRequestHandler = new BookingRequestHandler();
 
-            if (bookingRequestHandler.TimeChecking(bookingRequest.BookingTime).ToString() != "Fail!")
+            if (bookingRequestList.Count < 4)
             {
-                var response = new BookingRequest
+                if (bookingRequestHandler.TimeChecking(bookingRequest.BookingTime).ToString() != "Fail!")
                 {
-                    BookingId = Guid.NewGuid().ToString(),
-                    Name = bookingRequest.Name,
-                    BookingTime = bookingRequest.BookingTime,
-                    ExpiredTime = DateTime.Parse(bookingRequest.BookingTime).AddHours(1).ToString("HH:mm:ss"),
-                };
-                return Ok(response.BookingId);
+                    if (bookingRequestHandler.SlotExitsChecking(bookingRequestList, bookingRequest.BookingTime))
+                    {
+                        var response = new BookingRequest
+                        {
+                            BookingId = Guid.NewGuid().ToString(),
+                            Name = bookingRequest.Name,
+                            BookingTime = DateTime.Parse(bookingRequest.BookingTime).ToString("HH:mm:ss"),
+                            ExpiredTime = DateTime.Parse(bookingRequest.BookingTime).AddHours(1).ToString("HH:mm:ss"),
+                        };
+
+                        bookingRequestList.Add(response);
+                        return Ok(response.BookingId);
+                    }
+                    else
+                    {
+                        return Conflict();
+                    }
+                }
+                else
+                {
+                    return BadRequest();
+                }
             }
             else
-            {
                 return BadRequest();
-            }
         }
     }
 }
