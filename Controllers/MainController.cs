@@ -35,28 +35,21 @@ namespace SettlementBookingSystemAPI.Controllers
         public async Task<ActionResult> GetBookingRequest([FromBody] BookingRequest bookingRequest)
         {
             BookingRequestHandler bookingRequestHandler = new BookingRequestHandler();
-
+            //Checking numbers of exits clients
             if (bookingRequestList.Count < 4)
             {
+                //Checking valid time span to book
                 if (bookingRequestHandler.TimeChecking(bookingRequest.BookingTime).ToString() != "Fail!")
                 {
-                    if (bookingRequestHandler.SlotExitsChecking(bookingRequestList, bookingRequest.BookingTime))
+                    for (int i = 0; i < bookingRequestList.Count; i++)
                     {
-                        var response = new BookingRequest
+                        //Check conflict slot
+                        if (!bookingRequestHandler.TimeRangeChecking(bookingRequestList[i].BookingTime, bookingRequestList[i].ExpiredTime, bookingRequest.BookingTime))
                         {
-                            BookingId = Guid.NewGuid().ToString(),
-                            Name = bookingRequest.Name,
-                            BookingTime = DateTime.Parse(bookingRequest.BookingTime).ToString("HH:mm:ss"),
-                            ExpiredTime = DateTime.Parse(bookingRequest.BookingTime).AddHours(1).ToString("HH:mm:ss"),
-                        };
-
-                        bookingRequestList.Add(response);
-                        return Ok(response.BookingId);
+                            return Conflict();
+                        }
                     }
-                    else
-                    {
-                        return Conflict();
-                    }
+                    return AddToDoneBookingList(bookingRequest);
                 }
                 else
                 {
@@ -65,6 +58,19 @@ namespace SettlementBookingSystemAPI.Controllers
             }
             else
                 return BadRequest();
+        }
+
+        private ActionResult AddToDoneBookingList(BookingRequest bookingRequest)
+        {
+            var requestItem = new BookingRequest
+            {
+                BookingId = Guid.NewGuid().ToString(),
+                Name = bookingRequest.Name,
+                BookingTime = DateTime.Parse(bookingRequest.BookingTime).ToString("HH:mm:ss"),
+                ExpiredTime = DateTime.Parse(bookingRequest.BookingTime).AddHours(1).ToString("HH:mm:ss"),
+            };
+            bookingRequestList.Add(requestItem);
+            return Ok(requestItem.BookingId);
         }
     }
 }

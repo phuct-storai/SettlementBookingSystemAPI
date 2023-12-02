@@ -5,36 +5,39 @@ namespace SettlementBookingSystemAPI.Handlers
 {
     public class BookingRequestHandler
     {
+        private const int OPENTIME = 9;
+        private const int CLOSETIME = 16;
+
         public string TimeChecking(string bookingTime)
         {
             string expiredTime = "";
-            //var bookingTimeParse = TimeOnly.Parse(bookingTime, CultureInfo.InvariantCulture);
             var bookingTimeParse = Convert.ToDateTime(bookingTime);
-            //TimeOnly.Parse(bookingTime, CultureInfo.InvariantCulture);
 
-            if (bookingTimeParse.Hour < 9 || bookingTimeParse.Hour > 16)
+            if (bookingTimeParse.Hour < OPENTIME || bookingTimeParse.Hour > CLOSETIME)
             {
                 return "Fail!";
             }
+
             else
-            {
-                expiredTime = bookingTimeParse.AddHours(1).ToString();
-                return expiredTime;
-            }
+                return CreateExpiredTime(out expiredTime, bookingTimeParse);
         }
 
-        public bool SlotExitsChecking (List<BookingRequest> bookingRequests,string bookingTime)
+        private static string CreateExpiredTime(out string expiredTime, DateTime bookingTimeParse)
         {
-            var bookingTimeParse = Convert.ToDateTime(bookingTime);
-
-            bool time = bookingRequests.Exists(t => t.BookingTime.Contains(bookingTimeParse.Hour.ToString()));
-            if (!time)
-            {
-                return true;
-            }
-            else
-                return false;
+            expiredTime = bookingTimeParse.AddHours(1).ToString();
+            return expiredTime;
         }
 
+        public bool TimeRangeChecking (string startTime, string endTime, string bookingTime)
+        {
+            var startTimeParse = Convert.ToDateTime(startTime);
+            var endTimeParse = Convert.ToDateTime(endTime);
+            var bookingTimeParse = Convert.ToDateTime(bookingTime);
+            if (bookingTimeParse >  startTimeParse && bookingTimeParse < endTimeParse)
+            {
+                return false;
+            }
+            return true;
+        }
     }
 }
