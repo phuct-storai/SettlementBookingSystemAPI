@@ -1,5 +1,7 @@
-﻿using SettlementBookingSystemAPI.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using SettlementBookingSystemAPI.Models;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace SettlementBookingSystemAPI.Handlers
 {
@@ -8,18 +10,22 @@ namespace SettlementBookingSystemAPI.Handlers
         private const int OPENTIME = 9;
         private const int CLOSETIME = 16;
 
-        public string TimeChecking(string bookingTime)
+        public bool TimeChecking(string bookingTime)
         {
-            string expiredTime = "";
-            var bookingTimeParse = Convert.ToDateTime(bookingTime);
+            //string expiredTime = "";
+            //var bookingTimeParse = Convert.ToDateTime(bookingTime);
+            Regex timeRegex = new Regex("^(0[9]|1[0-6]):[0-5][0-9]:[0-5][0-9]$");
 
-            if (bookingTimeParse.Hour < OPENTIME || bookingTimeParse.Hour > CLOSETIME)
-            {
-                return "Fail!";
-            }
+            //if (bookingTimeParse.Hour < OPENTIME || bookingTimeParse.Hour > CLOSETIME)
+            if (!Regex.IsMatch(bookingTime, timeRegex.ToString()))
+                return false;
 
-            else
-                return CreateExpiredTime(out expiredTime, bookingTimeParse);
+            return true;
+            //{
+            //    return "Fail!";
+            //}
+            //else
+            //    return CreateExpiredTime(out expiredTime, bookingTimeParse);
         }
 
         private static string CreateExpiredTime(out string expiredTime, DateTime bookingTimeParse)
