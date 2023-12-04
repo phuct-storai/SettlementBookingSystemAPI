@@ -36,28 +36,30 @@ namespace SettlementBookingSystemAPI.Controllers
         {
             BookingRequestHandler bookingRequestHandler = new BookingRequestHandler();
             //Checking numbers of exits clients
-            if (bookingRequestList.Count < 4)
+            if (bookingRequestList.Count > 4)
             {
-                //Checking valid time span to book
-                if (bookingRequestHandler.TimeChecking(bookingRequest.BookingTime).ToString() != "Fail!")
+                return BadRequest();
+            }
+            else
+            {
+                //Checking valid time range to book
+                if (!bookingRequestHandler.TimeChecking(bookingRequest.BookingTime))
+                {
+                    return BadRequest();
+                }
+                else
                 {
                     for (int i = 0; i < bookingRequestList.Count; i++)
                     {
                         //Check conflict slot
-                        if (!bookingRequestHandler.TimeRangeChecking(bookingRequestList[i].BookingTime, bookingRequestList[i].ExpiredTime, bookingRequest.BookingTime))
+                        if (!bookingRequestHandler.ConflictBookingChecking(bookingRequestList[i].BookingTime, bookingRequestList[i].ExpiredTime, bookingRequest.BookingTime))
                         {
                             return Conflict();
                         }
                     }
                     return AddToDoneBookingList(bookingRequest);
                 }
-                else
-                {
-                    return BadRequest();
-                }
             }
-            else
-                return BadRequest();
         }
 
         private ActionResult AddToDoneBookingList(BookingRequest bookingRequest)
